@@ -1,5 +1,15 @@
 import torch
 
+def switch_trajectories(trajectories):
+    temp = trajectories['actions_x']
+    trajectories['actions_x'] = trajectories['actions_y']
+    trajectories['actions_y'] = temp
+
+    temp = trajectories['rewards_x']
+    trajectories['rewards_x'] = trajectories['rewards_y']
+    trajectories['rewards_y'] = temp
+
+
 def collect_trajectories(env, nb, policy_x, policy_y):
     trajectories = {}
     trajectories['states'] = []
