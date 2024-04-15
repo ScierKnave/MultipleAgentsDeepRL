@@ -57,7 +57,7 @@ def lola_training_loop(config, env, policy_a, policy_b):
 
 def main():
     # Example: Loading a YAML configuration file
-    config = load_yaml_file('config.yaml')
+    config = load_yaml_file('configs/config.yaml')
 
     if config['env'] == 'coin_game': env = RedBlueCoinGame()
     else: env = PrisonersDilemma(config['ipd_steps'])
