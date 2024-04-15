@@ -1,0 +1,11 @@
+env: coin_game # coin_game or prisonner_dilemma
+train_iterations: 100
+batch_size: 10
+log_freq: 10
+lr: 0.01
+lr_im: 0.01
+ipd_steps: 30
+policy_a_arch: MLPPolicy
+policy_b_arch: MLPPolicy
+arch_a: {}
+arch_b: {}

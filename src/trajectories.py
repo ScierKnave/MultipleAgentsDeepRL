@@ -40,14 +40,3 @@ def collect_trajectory(env, policy_x, policy_y):
         rewards_x.append(reward_x)
         rewards_y.append(reward_y)
     return states, actions_x, actions_y, rewards_x, rewards_y
-
-
-def lola_pg(env, trajectories, policy_x, policy_y, policy_y_star):
-    for trajectory in trajectories:
-        states, actions_x, actions_y, rewards_x, rewards_y = trajectory
-
-        lola_term = TODO
-        #
-        logits = policy_x(states)
-        acs_dict = torch.distributions.Categoriacal(logits)
-        loss =
