@@ -13,7 +13,7 @@ class PrisonersDilemma(gym.Env):
         self.reward_matrix = np.array([[3, 0], [5, 1]])  # Reward matrix for (Agent1, Agent2): (Cooperate, Cooperate), (Cooperate, Defect), (Defect, Cooperate), (Defect, Defect)
 
     def reset(self):
-        self.state = (0, 0)  # Initial state where both agents start with cooperating
+        self.state = np.array([0, 0])  # Initial state where both agents start with cooperating
         self.steps = 0
         return self.state
 
@@ -21,8 +21,9 @@ class PrisonersDilemma(gym.Env):
         self.steps += 1
         reward1 = self.reward_matrix[action1, action2]
         reward2 = self.reward_matrix[action2, action1]
-        self.state = (action1, action2)
-        done = True if self.steps >= self.max_steps else False
+        # self.state = (action1, action2)
+        self.state = np.array([action1, action2])
+        done = self.steps >= self.max_steps
         return self.state, reward1, reward2, done, {}
 
     def render(self, mode='human'):
