@@ -1,4 +1,5 @@
 import torch
+import copy
 
 def do_vector_step(network, grad_vector, eta):
     """
@@ -6,6 +7,7 @@ def do_vector_step(network, grad_vector, eta):
     grad_vector: (n, 1) torch.tensor
     eta: scalar, step size
     """
+    index = 0
     with torch.no_grad():
         for param in network.parameters():
             numel = param.numel()
@@ -29,10 +31,10 @@ def get_lola_matrix(states, actions_x, actions_y, rewards_y, policy_x, policy_y)
     for states, actions_x, actions_y, rewards_y in zip(states, actions_x, actions_y, rewards_y):
         # get log(policy_x(T)) for every T
         action_dist = policy_x(states)
-        log_probs_x = action_dist.log_prob(actions_x)
+        log_probs_x = action_dist.log_prob(actions_x).mean()
         # get log(policy_y(T)) for every T
         action_dist = policy_y(states)
-        log_probs_y = action_dist.log_prob(actions_y)
+        log_probs_y = action_dist.log_prob(actions_y).mean()
 
         # Get gradients in vector form
         grad_x = torchgrad_to_vect( torch.autograd.grad(log_probs_x, policy_x.parameters()) )
@@ -46,7 +48,7 @@ def get_regular_pg_loss(states, actions, rewards, policy, off_policy_adjuster=No
     loss = 0
     for (states, actions, rewards) in zip(states, actions, rewards): # for every trajectory
         if off_policy_adjuster is not None:
-            rewards = rewards * off_policy_adjuster(states)
+            rewards = rewards * off_policy_adjuster(states, actions)
         action_dist = policy(states)
         log_probs = action_dist.log_prob(actions)
         loss += -(log_probs * rewards).sum()
@@ -58,9 +60,24 @@ class off_policy_adjuster:
     def __init__(self, policy_num, policy_den):
         self.policy_num = policy_num
         self.policy_den = policy_den
-    def self(self, states):
-        with torch.no_grad:
-            return self.policy_num(states) / self.policy_den(states)
+    def __call__(self, states, actions):
+
+        # Obtain the probabilities from both policies
+        probs_num = self.policy_num(states).probs
+        probs_den = self.policy_den(states).probs
+
+        # Gather the probabilities corresponding to the taken actions
+        pi_num = probs_num.gather(1, actions.unsqueeze(1)).squeeze()
+        pi_den = probs_den.gather(1, actions.unsqueeze(1)).squeeze()
+
+        # Compute weights (avoiding division by zero)
+        with torch.no_grad():
+            weights = pi_num / (pi_den + 1e-10)  # Adding a small epsilon to avoid division by zero
+
+        return weights
+
+        # with torch.no_grad():
+        #     return self.policy_num(states) / self.policy_den(states)
 
 
 def lola_pg_step(trajectories, policy_x, policy_y, lr_x, lr_y):
@@ -74,8 +91,9 @@ def lola_pg_step(trajectories, policy_x, policy_y, lr_x, lr_y):
         policy_x, policy_y)
 
     # Get anticipatory y policy
-    policy_y_star = policy_y.deepcopy()
-    optimizer = torch.AdamW(policy_y_star, lr=lr_y)
+    # policy_y_star = policy_y.deepcopy()
+    policy_y_star = copy.deepcopy(policy_y)
+    optimizer = torch.optim.AdamW(policy_y_star.parameters(), lr=lr_y)
     loss = get_regular_pg_loss(
         trajectories['states'],
         trajectories['actions_y'],
@@ -102,7 +120,8 @@ def lola_pg_step(trajectories, policy_x, policy_y, lr_x, lr_y):
         trajectories['rewards_x'],
         policy_x,
         off_pol_adj)
-    grad_ap = torch.autograd.grad(grad_ap_loss, policy_x.parameters())
+
+    grad_ap = torchgrad_to_vect(torch.autograd.grad(grad_ap_loss, policy_x.parameters()))
 
     # Get the full gradient and update policy x
     grad = grad_lola + grad_ap

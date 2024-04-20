@@ -1,16 +1,20 @@
-
-def get_policies(in_size, out_size, config):
-    policy_a = config['policy_a_arch'](in_size, out_size, **config['arch_a'])
-    policy_b = config['policy_b_arch'](in_size, out_size, **config['arch_b'])
-    return policy_a, policy_b
-
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+def get_policies(in_size, out_size, config):
+    policies = {
+        'mlp': MLPPolicy,
+        'rnn': RNNPolicy,
+        'transformer': TransformerPolicy
+    }
+    policy_a = policies[config['policy_a_arch']](in_size, out_size, **config['arch_a'])
+    policy_b = policies[config['policy_b_arch']](in_size, out_size, **config['arch_b'])
+    return policy_a, policy_b
+
 class MLPPolicy(nn.Module):
-    def __init__(self, input_size, output_size,  hidden_size=128):
-        super(SimpleMLPPolicy, self).__init__()
+    def __init__(self, input_size, output_size,  hidden_size=32):
+        super(MLPPolicy, self).__init__()
         self.net = nn.Sequential(
             nn.Linear(input_size, hidden_size),
             nn.ReLU(),
@@ -18,12 +22,14 @@ class MLPPolicy(nn.Module):
         )
 
     def forward(self, x):
+        if type(x) != torch.Tensor:
+            x = torch.FloatTensor(x)
         logits = self.net(x)
         return torch.distributions.Categorical(logits=logits)
 
 class RNNPolicy(nn.Module):
     def __init__(self, input_size, output_size,hidden_size=32):
-        super(SimpleRNNPolicy, self).__init__()
+        super(RNNPolicy, self).__init__()
         self.rnn = nn.RNN(input_size, hidden_size, batch_first=True)
         self.fc = nn.Linear(hidden_size, output_size)
         # No softmax
@@ -36,7 +42,7 @@ class RNNPolicy(nn.Module):
 class TransformerPolicy(nn.Module):
     def __init__(self, input_size, output_size,
         hidden_size=32, nhead=4, num_encoder_layers=2, dim_feedforward=32):
-        super(SimpleTransformerPolicy, self).__init__()
+        super(TransformerPolicy, self).__init__()
         self.embedding = nn.Linear(input_size, hidden_size)
         transformer_layer = nn.TransformerEncoderLayer(d_model=hidden_size,
             nhead=nhead, dim_feedforward=dim_feedforward)

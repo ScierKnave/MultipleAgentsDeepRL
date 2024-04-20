@@ -1,0 +1,4 @@
+venv/
+*.pyc
+test.ipynb
+training_log*

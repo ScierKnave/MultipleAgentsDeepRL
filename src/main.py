@@ -9,6 +9,7 @@ from datetime import datetime
 import statistics as st
 import coin_game
 import prisonner_dilemma
+from utils import get_input_size
 
 def load_yaml_file(filepath):
     """Load a YAML file from the specified filepath."""
@@ -30,14 +31,14 @@ def lola_training_loop(config, env, policy_a, policy_b):
     logger['rewards_a'] = []
     logger['rewards_b'] = []
 
-    for it in config['train_iterations']:
+    for it in range(config['train_iterations']):
 
         nb = config['batch_size']
         trajectories = collect_trajectories(env=env, nb=nb, policy_x=policy_a, policy_y=policy_b)
 
         if (it + 1) % config['log_freq'] == 0:
-            mean_reward_a = st.mean([rewards.sum() for rewards in trajectories['rewards_x']])
-            mean_reward_b = st.mean([rewards.sum() for rewards in trajectories['rewards_y']])
+            mean_reward_a = st.mean([rewards.sum().item() for rewards in trajectories['rewards_x']])
+            mean_reward_b = st.mean([rewards.sum().item() for rewards in trajectories['rewards_y']])
             logger['rewards_a'].append(mean_reward_a)
             logger['rewards_b'].append(mean_reward_b)
             print(f"Iteration: {it + 1}/{config['train_iterations']}")
@@ -59,11 +60,12 @@ def main():
     # Example: Loading a YAML configuration file
     config = load_yaml_file('configs/config.yaml')
 
-    if config['env'] == 'coin_game': env = RedBlueCoinGame()
-    else: env = PrisonersDilemma(config['ipd_steps'])
+    if config['env'] == 'coin_game': env = RedBlueCoinGame(config['max_steps'])
+    else: env = PrisonersDilemma(config['max_steps'])
 
-    in_size = env.observation_space[0].shape
-    out_size = env.action_space.shape
+    in_size = get_input_size(env.observation_space)
+
+    out_size = env.action_space.n
     policy_a, policy_b = get_policies(in_size, out_size, config)
 
     lola_training_loop(config, env, policy_a, policy_b)
