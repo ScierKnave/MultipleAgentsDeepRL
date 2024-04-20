@@ -51,6 +51,7 @@ def lola_training_loop(config, logger, env, policy_a, policy_b):
             print(f"{key} Mean: {mean:.2f}")
 
         logger.update_plots()
+        logger.save_log()
         print("-" * 50)
 
         lola_pg_step(trajectories, policy_a, policy_b, config['lr'], config['lr_im'])

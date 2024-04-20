@@ -26,8 +26,8 @@ class PrisonersDilemma(gym.Env):
         # self.state = (action1, action2)
         self.state = np.array([action1, action2])
         info = {
-        'cooperate_a': 1-action1,
-        'cooperate_b': 1-action2,
+        'cooperation_a': 1-action1,
+        'cooperation_b': 1-action2,
         'reward_a': reward1,
         'reward_b': reward2,
         }
