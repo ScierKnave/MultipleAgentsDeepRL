@@ -12,7 +12,8 @@ class PrisonersDilemma(gym.Env):
         self.max_steps = steps
         # Action Cooperate: 0
         # Action Defect: 1
-        self.reward_matrix = np.array([[3, 0], [5, 1]])  # Reward matrix for (Agent1, Agent2): (Cooperate, Cooperate), (Cooperate, Defect), (Defect, Cooperate), (Defect, Defect)
+        # reward matrix for agent 1
+        self.reward_matrix = np.array([[-1, 0], [-3, -2]])  # Reward matrix for (Agent1, Agent2): (Cooperate, Cooperate), (Cooperate, Defect), (Defect, Cooperate), (Defect, Defect)
 
     def reset(self):
         self.state = np.array([0, 0])  # Initial state where both agents start with cooperating
