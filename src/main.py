@@ -62,6 +62,7 @@ def main():
 
     if config['env'] == 'coin_game': env = RedBlueCoinGame(config['max_steps'])
     else: env = PrisonersDilemma(config['max_steps'])
+    # else: env = CoinGame(config['max_steps'])
 
     in_size = get_input_size(env.observation_space)
 

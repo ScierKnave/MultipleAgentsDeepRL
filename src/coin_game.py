@@ -4,7 +4,7 @@ import numpy as np
 
 
 class RedBlueCoinGame(gym.Env):
-    def __init__(self, steps, grid_size=(4, 4)):
+    def __init__(self, steps, grid_size=(3, 3)):
         super(RedBlueCoinGame, self).__init__()
         self.grid_size = grid_size
         self.max_steps = steps
@@ -29,6 +29,7 @@ class RedBlueCoinGame(gym.Env):
         while self.blue_position == self.red_position:
             self.blue_position = (np.random.randint(0, self.grid_size[0]), np.random.randint(0, self.grid_size[1]))
         self.coin_color = np.random.choice([0, 1])  # Randomly choose initial color
+        # self.coin_color = 0
         self._spawn_coin()
         self._update_state()
         return self.state
@@ -42,14 +43,20 @@ class RedBlueCoinGame(gym.Env):
         if self.red_position == self.coin_position:
             reward_red += 1
             if self.coin_color == 1:  # Red agent picks up a blue coin
-                self.blue_score -= 2
-            self._toggle_coin_color()
-            self._spawn_coin()
+                reward_blue -= 2
+            # self._toggle_coin_color()
+            # self._spawn_coin()
 
         if self.blue_position == self.coin_position:
             reward_blue += 1
             if self.coin_color == 0:  # Blue agent picks up a red coin
-                self.red_score -= 2
+                reward_red -= 2
+            # self._toggle_coin_color()
+            # self._spawn_coin()
+
+        if self.red_position == self.coin_position or self.blue_position == self.coin_position:
+            # if self.coin_color == 1:  # Red agent picks up a blue coin
+            #     self.blue_score -= 2
             self._toggle_coin_color()
             self._spawn_coin()
 
@@ -87,3 +94,62 @@ class RedBlueCoinGame(gym.Env):
             return (position[0], max(position[1] - 1, 0))
         elif action == 3:  # Right
             return (position[0], min(position[1] + 1, self.grid_size[1] - 1))
+
+class CoinGame(gym.Env):
+    def __init__(self, steps, grid_size=(3, 3)):
+        super(CoinGame, self).__init__()
+        self.grid_size = grid_size
+        self.max_steps = steps
+        self.steps = 0
+        self.state = None
+        self.player_position = None
+        self.coin_position = None
+        self.score = 0
+        self.action_space = spaces.Discrete(4)  # 4 possible actions: up, down, left, right
+        self.observation_space = spaces.Box(low=0, high=1, shape=(grid_size[0], grid_size[1], 2), dtype=np.float32)  # Player and coin positions
+
+    def reset(self):
+        self.steps = 0
+        self.state = np.zeros(self.observation_space.shape)
+        self.player_position = (np.random.randint(0, self.grid_size[0]), np.random.randint(0, self.grid_size[1]))
+        self._spawn_coin()
+        self._update_state()
+        return self.state
+
+    def step(self, action, dummy_action):
+        self.steps += 1
+        self.player_position = self._move(self.player_position, action)
+        self._update_state()
+
+        reward = 0
+        if self.player_position == self.coin_position:
+            reward = 1  # Reward for collecting a coin
+            self.score += reward
+            self._spawn_coin()  # Spawn a new coin
+            self._update_state()
+
+        done = self.steps >= self.max_steps
+        return self.state, reward, 0, done, {}
+
+    def _spawn_coin(self):
+        # Ensure the coin is not spawned at the player's current position
+
+        self.coin_position = (np.random.randint(0, self.grid_size[0]), np.random.randint(0, self.grid_size[1]))
+        while self.coin_position == self.player_position:
+            self.coin_position = (np.random.randint(0, self.grid_size[0]), np.random.randint(0, self.grid_size[1]))
+
+    def _update_state(self):
+        self.state = np.zeros(self.observation_space.shape)
+        self.state[self.player_position[0], self.player_position[1], 0] = 1  # Player position
+        self.state[self.coin_position[0], self.coin_position[1], 1] = 1  # Coin position
+
+    def _move(self, position, action):
+        if action == 0:  # Up
+            return (max(position[0] - 1, 0), position[1])
+        elif action == 1:  # Down
+            return (min(position[0] + 1, self.grid_size[0] - 1), position[1])
+        elif action == 2:  # Left
+            return (position[0], max(position[1] - 1, 0))
+        elif action == 3:  # Right
+            return (position[0], min(position[1] + 1, self.grid_size[1] - 1))
+
