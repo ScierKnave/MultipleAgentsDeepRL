@@ -11,6 +11,7 @@ import coin_game
 import prisonner_dilemma
 from utils import get_input_size
 from utils import *
+from history_wrapper import *
 
 def load_yaml_file(filepath):
     """Load a YAML file from the specified filepath."""
@@ -41,9 +42,9 @@ def lola_training_loop(config, logger, env, policy_a, policy_b):
                     if key not in info_sums:
                         info_sums[key] = 0
                         info_counts[key] = 0.00001
-                    if value == None: break
-                    info_sums[key] += value
-                    info_counts[key] += 1
+                    if value is not None:
+                        info_sums[key] += value
+                        info_counts[key] += 1
 
         # Calculate and log the mean of each key's total sum
         info_means = {key: info_sums[key] / info_counts[key] for key in info_sums}
@@ -66,6 +67,9 @@ def main():
 
     if config['env'] == 'coin_game': env = RedBlueCoinGame(config['max_steps'])
     else: env = PrisonersDilemma(config['max_steps'])
+    
+    if config['history'] != None:
+        env = HistoryWrapper(env, config['history'])
 
     in_size = get_input_size(env.observation_space)
 

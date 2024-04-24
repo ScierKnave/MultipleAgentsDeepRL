@@ -10,11 +10,12 @@ from collections import defaultdict
 
 
 def get_input_size(space):
-
-    if type(space) == spaces.Box:
+    if isinstance(space, spaces.Box):
         return reduce(mul, space.shape)
-    
-    return space[0].n
+    elif isinstance(space, spaces.Discrete):
+        return space.n
+    else:
+        raise ValueError("Invalid space type")
 
 
 class Logger:

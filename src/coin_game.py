@@ -20,7 +20,7 @@ class RedBlueCoinGame(gym.Env):
         # Update observation space for distinct coin positions
         self.observation_space = spaces.Box(low=0, high=1, shape=(grid_size[0], grid_size[1], 4), dtype=np.float32) 
 
-    def reset(self):
+    def reset(self, seed=None, options=None):
         self.steps = 0
         self.state = np.zeros(self.observation_space.shape)
         self.red_position = (np.random.randint(0, self.grid_size[0]), np.random.randint(0, self.grid_size[1]))
@@ -33,7 +33,8 @@ class RedBlueCoinGame(gym.Env):
         self._update_state()
         return self.state
 
-    def step(self, action_red, action_blue):
+    def step(self, actions):
+        action_red, action_blue = actions
         self.steps += 1
         self.red_position = self._move(self.red_position, action_red)
         self.blue_position = self._move(self.blue_position, action_blue)
