@@ -42,7 +42,7 @@ def get_lola_matrix(states, actions_x, actions_y, rewards_y, policy_x, policy_y)
         grad_x = torchgrad_to_vect( torch.autograd.grad(log_probs_x, policy_x.parameters()) )
         grad_y = torchgrad_to_vect( torch.autograd.grad(log_probs_y, policy_y.parameters()) )
         if M is not None: M += rewards_y.sum() * torch.outer(grad_x, grad_y)
-        else: M = rewards_y.sum() * torch.outer(grad_y, grad_x)
+        else: M = rewards_y.sum() * torch.outer(grad_x, grad_y)
 
     return M / n
 

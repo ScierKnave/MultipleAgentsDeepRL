@@ -35,9 +35,6 @@ def collect_trajectory(env, policy_x, policy_y):
     states, actions_x, actions_y, rewards_x, rewards_y, infos = [], [], [], [], [], []
     while not done:
         states.append(state)
-        # action_x = torch.argmax(policy_x(state).sample().item())
-        # action_y = torch.argmax(policy_y(state))
-        # state = torch.FloatTensor(state)
         action_x = policy_x(state).sample().item()
         action_y = policy_y(state).sample().item()
         state, reward_x, reward_y, done, info = env.step((action_x, action_y))

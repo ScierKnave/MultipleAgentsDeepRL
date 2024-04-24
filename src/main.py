@@ -56,10 +56,10 @@ def lola_training_loop(config, logger, env, policy_a, policy_b):
         logger.save_log()
         print("-" * 50)
 
+        policy_a_copy = copy.deepcopy(policy_a)
         lola_pg_step(trajectories, policy_a, policy_b, config['lr'], config['lr_im'])
-
         switch_trajectories(trajectories) # sorry for this ugliness
-        lola_pg_step(trajectories, policy_b, policy_a, config['lr'], config['lr_im'])
+        lola_pg_step(trajectories, policy_b, policy_a_copy, config['lr'], config['lr_im'])
 
 
 def main():

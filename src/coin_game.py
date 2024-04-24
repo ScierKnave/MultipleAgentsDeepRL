@@ -46,7 +46,7 @@ class RedBlueCoinGame(gym.Env):
             'blue_picks_coin_b': 0,
         }
         
-        reward_red, reward_blue = 0, 0
+        reward_red, reward_blue = -0.5, -0.5
         if self.red_position == self.coin_position:
             reward_red += 1
             info['red_p_own_coin_a'] = 1
