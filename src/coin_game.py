@@ -38,15 +38,24 @@ class RedBlueCoinGame(gym.Env):
         self.red_position = self._move(self.red_position, action_red)
         self.blue_position = self._move(self.blue_position, action_blue)
         
+        info = {
+            'red_p_own_coin_a': None,
+            'blue_p_own_coin_b': None,
+        }
+        
         reward_red, reward_blue = 0, 0
         if self.red_position == self.coin_position:
             reward_red += 1
+            info['red_p_own_coin_a'] = 1
             if self.coin_color == 1:  # Red agent picks up a blue coin
+                info['red_p_own_coin_a'] = 0
                 reward_blue -= 2
 
         if self.blue_position == self.coin_position:
             reward_blue += 1
+            info['blue_p_own_coin_b'] = 1
             if self.coin_color == 0:  # Blue agent picks up a red coin
+                info['blue_p_own_coin_b'] = 0
                 reward_red -= 2
 
         if self.red_position == self.coin_position or self.blue_position == self.coin_position:
@@ -58,7 +67,9 @@ class RedBlueCoinGame(gym.Env):
         self._update_state()
 
         done = self.steps >= self.max_steps
-        return self.state, reward_red, reward_blue, done, {}
+        info['red_reward_a'] = reward_red
+        info['blue_reward_b'] = reward_blue
+        return self.state, reward_red, reward_blue, done, info
 
     def _spawn_coin(self):
         # Spawn a coin in a position that is not occupied by any player

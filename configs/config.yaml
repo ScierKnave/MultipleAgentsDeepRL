@@ -1,11 +1,11 @@
 # env: coin_game # coin_game or prisonner_dilemma
-env: ipd
+env: coin_game
 train_iterations: 10000
-batch_size: 10
+batch_size: 30
 log_freq: 10
 lr: 0.01
 lr_im: 0.01
-max_steps: 30
+max_steps: 100
 policy_a_arch: mlp
 policy_b_arch: mlp
 arch_a: {}

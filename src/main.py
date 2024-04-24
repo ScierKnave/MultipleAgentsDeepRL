@@ -40,7 +40,8 @@ def lola_training_loop(config, logger, env, policy_a, policy_b):
                 for key, value in info.items():
                     if key not in info_sums:
                         info_sums[key] = 0
-                        info_counts[key] = 0
+                        info_counts[key] = 0.00001
+                    if value == None: break
                     info_sums[key] += value
                     info_counts[key] += 1
 
