@@ -68,7 +68,7 @@ def main():
     if config['env'] == 'coin_game': env = RedBlueCoinGame(config['max_steps'])
     else: env = PrisonersDilemma(config['max_steps'])
     
-    if config['history'] != None:
+    if config['history'] != "None":
         env = HistoryWrapper(env, config['history'])
 
     in_size = get_input_size(env.observation_space)
@@ -76,7 +76,7 @@ def main():
     out_size = env.action_space.n
     policy_a, policy_b = get_policies(in_size, out_size, config)
 
-    logger = Logger(datetime.now().strftime("%Y-%m-%d_%H-%M-%S"))
+    logger = Logger('experiments/'+datetime.now().strftime("%Y-%m-%d_%H-%M-%S"))
 
     lola_training_loop(config, logger, env, policy_a, policy_b)
 

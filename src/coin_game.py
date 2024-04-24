@@ -4,7 +4,7 @@ import numpy as np
 
 
 class RedBlueCoinGame(gym.Env):
-    def __init__(self, steps, grid_size=(4, 4)):
+    def __init__(self, steps, grid_size=(2, 2)):
         super(RedBlueCoinGame, self).__init__()
         self.grid_size = grid_size
         self.max_steps = steps
@@ -42,22 +42,29 @@ class RedBlueCoinGame(gym.Env):
         info = {
             'red_p_own_coin_a': None,
             'blue_p_own_coin_b': None,
+            'red_picks_coin_a': 0,
+            'blue_picks_coin_b': 0,
         }
         
         reward_red, reward_blue = 0, 0
         if self.red_position == self.coin_position:
             reward_red += 1
             info['red_p_own_coin_a'] = 1
+            info['red_picks_coin_a'] = 1
+            
             if self.coin_color == 1:  # Red agent picks up a blue coin
                 info['red_p_own_coin_a'] = 0
-                reward_blue -= 2
+                reward_blue -= 3
+                #reward_red -= 150
 
         if self.blue_position == self.coin_position:
             reward_blue += 1
             info['blue_p_own_coin_b'] = 1
+            info['blue_picks_coin_b'] = 1
             if self.coin_color == 0:  # Blue agent picks up a red coin
                 info['blue_p_own_coin_b'] = 0
-                reward_red -= 2
+                reward_red -= 3
+                #reward_blue -= 150
 
         if self.red_position == self.coin_position or self.blue_position == self.coin_position:
             self._toggle_coin_color()

@@ -14,7 +14,7 @@ def get_policies(in_size, out_size, config):
     return policy_a, policy_b
 
 class MLPPolicy(nn.Module):
-    def __init__(self, input_size, output_size,  hidden_size=32):
+    def __init__(self, input_size, output_size,  hidden_size=16):
         super(MLPPolicy, self).__init__()
         self.net = nn.Sequential(
             nn.Linear(input_size, hidden_size),
@@ -29,23 +29,18 @@ class MLPPolicy(nn.Module):
         return torch.distributions.Categorical(logits=logits)
 
 class RNNPolicy(nn.Module):
-    def __init__(self, input_size, output_size, hidden_size=32):
+    def __init__(self, input_size, output_size, hidden_size=16):
         super(RNNPolicy, self).__init__()
         self.rnn = nn.RNN(64, hidden_size, batch_first=True)
         self.fc = nn.Linear(hidden_size, output_size)
         # No softmax
 
     def forward(self, x):
-        #print(x.shape)
-        #if len(x.shape) == 3:
-        #    x = x.reshape(30, 7, 64)
-        #else: x = x.reshape(30, 7, 64)
-        #print(x.shape)
         if isinstance(x, torch.Tensor):
-            x = x.reshape(x.shape[0], 7, 64)
+            x = x.reshape(x.shape[0], 4, 64)
         else:
-            x = x.reshape(int(prod(x.shape[:-2])), 7, 64)
-            x = torch.tensor(x, dtype=torch.float32)
+            x = x.reshape(1, 4, 64)
+            x = torch.tensor(x, dtype=torch.float32, requires_grad=False)
             
         out, _ = self.rnn(x)
         logits = self.fc(out[:, -1, :])

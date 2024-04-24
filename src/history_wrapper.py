@@ -20,10 +20,8 @@ class HistoryWrapper(Wrapper):
             self.history.append(np.zeros(self.env.observation_space.shape))
 
     def _make_observation(self):
-        #print(len(self.history))
         array = np.concatenate(list(self.history), axis=0)
         array = array.reshape(array.shape[0], -1).flatten()
-        #print(array.shape)
         return array
 
     def reset(self):
@@ -32,7 +30,7 @@ class HistoryWrapper(Wrapper):
         self.history.append(obs)      
         return self._make_observation()
 
-    def step(self, action1, action2):
-        obs, reward1, reward2, done, info = super(HistoryWrapper, self).step((action1, action2))
+    def step(self, actions):
+        obs, reward1, reward2, done, info = super(HistoryWrapper, self).step(actions)
         self.history.append(obs)
         return self._make_observation(), reward1, reward2, done, info

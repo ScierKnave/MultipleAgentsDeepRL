@@ -14,6 +14,9 @@ def get_input_size(space):
         return reduce(mul, space.shape)
     elif isinstance(space, spaces.Discrete):
         return space.n
+    elif isinstance(space, spaces.Tuple):
+        print(space)
+        return get_input_size(space[0])
     else:
         raise ValueError("Invalid space type")
 

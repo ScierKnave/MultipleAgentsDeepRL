@@ -20,7 +20,8 @@ class PrisonersDilemma(gym.Env):
         self.steps = 0
         return self.state
 
-    def step(self, action1, action2):
+    def step(self, actions):
+        action1, action2 = actions
         self.steps += 1
         reward1 = self.reward_matrix[action1, action2]
         reward2 = self.reward_matrix[action2, action1]
