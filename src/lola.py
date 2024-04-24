@@ -12,12 +12,12 @@ def do_vector_step(network, grad_vector, eta):
         for param in network.parameters():
             numel = param.numel()
             param_update = grad_vector[index:index + numel].reshape(param.shape)
-            param -= eta * param_update
+            param += eta * param_update
             index += numel
 
 def torchgrad_to_vect(grad):
     """
-    grad = torch.autograd.grad(loss, network.parameters())
+    grad = torch.autograd.grad(gold, network.parameters())
     """
     with torch.no_grad():
         return torch.cat([g.view(-1) for g in grad])
@@ -29,31 +29,33 @@ def get_lola_matrix(states, actions_x, actions_y, rewards_y, policy_x, policy_y)
     n = len(states) # number of trajectories
     # For every trajectory
     for states, actions_x, actions_y, rewards_y in zip(states, actions_x, actions_y, rewards_y):
+        
         # get log(policy_x(T)) for every T
         action_dist = policy_x(states)
-        log_probs_x = action_dist.log_prob(actions_x).mean()
+        log_probs_x = action_dist.log_prob(actions_x).sum()
+        
         # get log(policy_y(T)) for every T
         action_dist = policy_y(states)
-        log_probs_y = action_dist.log_prob(actions_y).mean()
+        log_probs_y = action_dist.log_prob(actions_y).sum()
 
         # Get gradients in vector form
         grad_x = torchgrad_to_vect( torch.autograd.grad(log_probs_x, policy_x.parameters()) )
         grad_y = torchgrad_to_vect( torch.autograd.grad(log_probs_y, policy_y.parameters()) )
         if M is not None: M += rewards_y.sum() * torch.outer(grad_x, grad_y)
-        else: M = rewards_y.sum() * torch.outer(grad_x, grad_y)
+        else: M = rewards_y.sum() * torch.outer(grad_y, grad_x)
 
     return M / n
 
-def get_regular_pg_loss(states, actions, rewards, policy, off_policy_adjuster=None):
-    loss = 0
+def get_regular_pg_gold(states, actions, rewards, policy, off_policy_adjuster=None):
+    gold = 0
     for (states, actions, rewards) in zip(states, actions, rewards): # for every trajectory
         if off_policy_adjuster is not None:
             rewards = rewards * off_policy_adjuster(states, actions)
         action_dist = policy(states)
         log_probs = action_dist.log_prob(actions)
-        loss += -(log_probs * rewards).sum()
-    loss /= len(rewards) # get mean
-    return loss
+        gold += (log_probs * rewards).sum()
+    gold /= len(rewards) # get mean
+    return gold
 
 
 class off_policy_adjuster:
@@ -90,38 +92,35 @@ def lola_pg_step(trajectories, policy_x, policy_y, lr_x, lr_y):
         trajectories['rewards_y'],
         policy_x, policy_y)
 
-    # Get anticipatory y policy
-    # policy_y_star = policy_y.deepcopy()
-    policy_y_star = copy.deepcopy(policy_y)
-    optimizer = torch.optim.AdamW(policy_y_star.parameters(), lr=lr_y)
-    loss = get_regular_pg_loss(
+    # Get theta_y°
+    policy_y_circ = copy.deepcopy(policy_y)
+    gold = get_regular_pg_gold(
         trajectories['states'],
         trajectories['actions_y'],
         trajectories['rewards_y'],
-        policy_y_star)
-    loss.backward()
-    optimizer.step()
+        policy_y_circ)
+    grad_y_circ = torchgrad_to_vect(torch.autograd.grad(gold, policy_y_circ.parameters()))
+    do_vector_step(policy_y_circ, grad_y_circ, lr_y)
 
-    # Get the LOLA gradient
-    off_pol_adj = off_policy_adjuster(policy_y_star, policy_y) # importance sampling without gradient
-    pg_y_star_loss = get_regular_pg_loss(
+    # Get g_lola
+    off_pol_adj = off_policy_adjuster(policy_y_circ, policy_y) # importance sampling without gradient
+    pg_y_circ_gold = get_regular_pg_gold(
         trajectories['states'],
         trajectories['actions_y'],
         trajectories['rewards_x'],
-        policy_y_star,
+        policy_y_circ,
         off_pol_adj)
-    grad_y_star = torch.autograd.grad(pg_y_star_loss, policy_y_star.parameters())
-    grad_lola = torch.matmul(lola_matrix, torchgrad_to_vect(grad_y_star))
+    grad_y_circ = torch.autograd.grad(pg_y_circ_gold, policy_y_circ.parameters())
+    grad_lola = torch.matmul(lola_matrix, torchgrad_to_vect(grad_y_circ))
 
-    # Get anticipatory grad
-    grad_ap_loss = get_regular_pg_loss(
+    # Get g_ap
+    grad_ap_gold = get_regular_pg_gold(
         trajectories['states'],
         trajectories['actions_x'],
         trajectories['rewards_x'],
         policy_x,
         off_pol_adj)
-
-    grad_ap = torchgrad_to_vect(torch.autograd.grad(grad_ap_loss, policy_x.parameters()))
+    grad_ap = torchgrad_to_vect(torch.autograd.grad(grad_ap_gold, policy_x.parameters()))
 
     # Get the full gradient and update policy x
     grad = grad_lola + grad_ap

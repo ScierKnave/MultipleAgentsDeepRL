@@ -54,8 +54,7 @@ class RedBlueCoinGame(gym.Env):
             
             if self.coin_color == 1:  # Red agent picks up a blue coin
                 info['red_p_own_coin_a'] = 0
-                reward_blue -= 3
-                #reward_red -= 150
+                reward_blue -= 2
 
         if self.blue_position == self.coin_position:
             reward_blue += 1
@@ -63,8 +62,7 @@ class RedBlueCoinGame(gym.Env):
             info['blue_picks_coin_b'] = 1
             if self.coin_color == 0:  # Blue agent picks up a red coin
                 info['blue_p_own_coin_b'] = 0
-                reward_red -= 3
-                #reward_blue -= 150
+                reward_red -= 2
 
         if self.red_position == self.coin_position or self.blue_position == self.coin_position:
             self._toggle_coin_color()
