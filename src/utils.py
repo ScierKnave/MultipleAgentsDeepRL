@@ -44,7 +44,7 @@ class Logger:
         self.count += 1
 
         if self.count % self.k == 0:  # save the state every k steps
-            self.states.append({key: values[:self.count//self.k+1] for key, values in self.logs.items()})
+            self.states.append({key: values[:self.count] for key, values in self.logs.items()})
             self.render_video()
             
     def animate(self, i):
@@ -75,11 +75,8 @@ class Logger:
                 ax.set_xlabel("Iterations", fontsize=12)
                 ax.set_ylabel("Value", fontsize=12)
                 ax.legend(loc='upper left', fontsize=10)
-
             plt.tight_layout()
             plt.draw()
-
-
 
 
     def save_log(self):
@@ -87,9 +84,10 @@ class Logger:
             json.dump(self.logs, file, indent=4)
 
     def render_video(self):
+        self.fig.savefig(f"{self.path}/plot_{self.count}.png") 
         anim = animation.FuncAnimation(self.fig, 
                                        self.animate, 
                                        frames=range(len(self.states)),
-                                       interval=10
+                                       interval=80
                                        )
-        anim.save(f"{self.path}/plots_{self.count//self.k}.mp4", writer='ffmpeg')
+        anim.save(f"{self.path}/plots_{self.count}.mp4", writer='ffmpeg')

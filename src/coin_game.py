@@ -40,28 +40,27 @@ class RedBlueCoinGame(gym.Env):
         self.blue_position = self._move(self.blue_position, action_blue)
         
         info = {
-            'red_p_own_coin_a': None,
-            'blue_p_own_coin_b': None,
-            'red_picks_coin_a': 0,
-            'blue_picks_coin_b': 0,
+            'p_own_coin_red': None,
+            'p_own_coin_blue': None,
+            'p_coin_red': 0,
+            'p_coin_blue': 0,
         }
         
-        reward_red, reward_blue = -0.5, -0.5
+        reward_red, reward_blue = 0, 0
         if self.red_position == self.coin_position:
-            reward_red += 1
-            info['red_p_own_coin_a'] = 1
-            info['red_picks_coin_a'] = 1
-            
+            reward_red += 3
+            info['p_own_coin_red'] = 1
+            info['p_coin_red'] = 1
             if self.coin_color == 1:  # Red agent picks up a blue coin
-                info['red_p_own_coin_a'] = 0
+                info['p_own_coin_red'] = 0
                 reward_blue -= 2
 
         if self.blue_position == self.coin_position:
-            reward_blue += 1
-            info['blue_p_own_coin_b'] = 1
-            info['blue_picks_coin_b'] = 1
+            reward_blue += 3
+            info['p_own_coin_blue'] = 1
+            info['p_coin_blue'] = 1
             if self.coin_color == 0:  # Blue agent picks up a red coin
-                info['blue_p_own_coin_b'] = 0
+                info['p_own_coin_blue'] = 0
                 reward_red -= 2
 
         if self.red_position == self.coin_position or self.blue_position == self.coin_position:
@@ -73,8 +72,8 @@ class RedBlueCoinGame(gym.Env):
         self._update_state()
 
         done = self.steps >= self.max_steps
-        info['red_reward_a'] = reward_red
-        info['blue_reward_b'] = reward_blue
+        info['reward_red'] = reward_red
+        info['reward_blue'] = reward_blue
         return self.state, reward_red, reward_blue, done, info
 
     def _spawn_coin(self):

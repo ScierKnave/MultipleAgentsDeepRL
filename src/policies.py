@@ -31,15 +31,15 @@ class MLPPolicy(nn.Module):
 class RNNPolicy(nn.Module):
     def __init__(self, input_size, output_size, hidden_size=16):
         super(RNNPolicy, self).__init__()
-        self.rnn = nn.RNN(64, hidden_size, batch_first=True)
+        self.rnn = nn.RNN(16, hidden_size, batch_first=True)
         self.fc = nn.Linear(hidden_size, output_size)
         # No softmax
 
     def forward(self, x):
         if isinstance(x, torch.Tensor):
-            x = x.reshape(x.shape[0], 5, 64)
+            x = x.reshape(x.shape[0], 5, 16)
         else:
-            x = x.reshape(1, 5, 64)
+            x = x.reshape(1, 5, 16)
             x = torch.tensor(x, dtype=torch.float32, requires_grad=False)
             
         out, _ = self.rnn(x)
