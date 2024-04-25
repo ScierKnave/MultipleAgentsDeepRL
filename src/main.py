@@ -29,7 +29,7 @@ def lola_training_loop(config, logger, env, policy_a, policy_b):
         nb = config['batch_size']
         trajectories = collect_trajectories(env=env, nb=nb, policy_x=policy_a, policy_y=policy_b)
 
-        if (it + 1) % config['log_freq'] == 0:
+        if (it+1) % config['log_freq'] == 0:
 
             print(f"Iteration: {it + 1}/{config['train_iterations']}")
 
@@ -76,7 +76,9 @@ def main():
     out_size = env.action_space.n
     policy_a, policy_b = get_policies(in_size, out_size, config)
 
-    logger = Logger('experiments/'+datetime.now().strftime("%Y-%m-%d_%H-%M-%S"))
+    logger = Logger(directory='experiments/'+datetime.now().strftime("%Y-%m-%d_%H-%M-%S"),
+                    k=config['video_freq']
+                    )
 
     lola_training_loop(config, logger, env, policy_a, policy_b)
 

@@ -37,9 +37,9 @@ class RNNPolicy(nn.Module):
 
     def forward(self, x):
         if isinstance(x, torch.Tensor):
-            x = x.reshape(x.shape[0], 4, 64)
+            x = x.reshape(x.shape[0], 5, 64)
         else:
-            x = x.reshape(1, 4, 64)
+            x = x.reshape(1, 5, 64)
             x = torch.tensor(x, dtype=torch.float32, requires_grad=False)
             
         out, _ = self.rnn(x)
