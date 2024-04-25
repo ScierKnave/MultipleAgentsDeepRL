@@ -1,0 +1,13 @@
+arch_a: {}
+arch_b: {}
+batch_size: 20
+env: prisonner_dilemma
+history: None
+log_freq: 1
+lr: 0.001
+lr_im: 0.001
+max_steps: 20
+policy_a_arch: mlp
+policy_b_arch: mlp
+train_iterations: 10000
+video_freq: 100

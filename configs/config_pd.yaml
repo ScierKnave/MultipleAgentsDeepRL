@@ -1,0 +1,14 @@
+# env: coin_game # coin_game or prisonner_dilemma
+env:  prisonner_dilemma
+history: None # Int or None
+train_iterations: 10000
+batch_size: 20
+log_freq: 1
+video_freq: 100
+lr: 0.001
+lr_im: 0.001
+max_steps: 20
+policy_a_arch: mlp # mlp, rnn
+policy_b_arch: mlp
+arch_a: {}
+arch_b: {}

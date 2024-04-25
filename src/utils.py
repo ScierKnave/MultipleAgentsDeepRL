@@ -9,7 +9,7 @@ from collections import defaultdict
 from matplotlib.animation import FuncAnimation
 from matplotlib import pyplot as plt
 import matplotlib.animation as animation
-
+import yaml
 plt.style.use('ggplot')
 
 def get_input_size(space):
@@ -25,7 +25,7 @@ def get_input_size(space):
 
 
 class Logger:
-    def __init__(self, directory, k=100):
+    def __init__(self, config, directory, k=100):
         self.path = directory
         self.logs = {}
         self.fig = plt.figure(figsize=(10, 5))  
@@ -35,6 +35,9 @@ class Logger:
         self.k = k  # Number of updates between each video rendering
         self.count = 0
         self.states = []
+        
+        with open(self.path+'/config.yml', 'w') as outfile:
+            yaml.dump(config, outfile, default_flow_style=False)
         
     def log(self, entry, value):
         if entry not in self.logs: 

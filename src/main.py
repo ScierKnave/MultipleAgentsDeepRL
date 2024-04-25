@@ -65,6 +65,7 @@ def lola_training_loop(config, logger, env, policy_a, policy_b):
 def main():
     config = load_yaml_file('configs/config.yaml')
 
+
     if config['env'] == 'coin_game': env = RedBlueCoinGame(config['max_steps'])
     else: env = PrisonersDilemma(config['max_steps'])
     
@@ -76,7 +77,9 @@ def main():
     out_size = env.action_space.n
     policy_a, policy_b = get_policies(in_size, out_size, config)
 
-    logger = Logger(directory='experiments/'+datetime.now().strftime("%Y-%m-%d_%H-%M-%S"),
+    logger = Logger(
+                    config=config,
+                    directory='experiments/'+datetime.now().strftime("%Y-%m-%d_%H-%M-%S"),
                     k=config['video_freq']
                     )
 
